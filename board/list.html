@@ -59,10 +59,10 @@
 
      .logo-link {
         text-decoration: none;
-        color: inherit;      
+        color: inherit;
     }
     .logo-link:hover {
-        color: inherit;      
+        color: inherit;
     }
     /* ===== Main ===== */
     main{max-width:1100px; margin:0 auto; padding:28px 20px 0;}
@@ -218,7 +218,7 @@
     }
     .tag.notice{border-color: rgba(31,75,216,0.35); background: rgba(31,75,216,0.08); color: var(--primary);}
     .tag.form{border-color: rgba(180,83,9,0.30); background: rgba(180,83,9,0.08); color: var(--warn);}
-    .tag.share{border-color: rgba(22,101,52,0.25); background: rgba(22,101,52,0.08); color: var(--ok);}
+    .tag.share{border-color: rgba(22,101,52,0.25); background: rgba(22,101,52,0.08); color: var (--ok);}
 
     .file-pill{
       display:inline-flex;
@@ -418,6 +418,8 @@
 
 <script>
   let docs = [];
+ 
+
   let selectedDoc = null;
 
   const tbody = document.getElementById("boardTable");
@@ -432,7 +434,7 @@
 
   async function loadDocs() {
     try {
-      const res = await fetch("/api/board/posts?page=0&size=50", {
+      const res = await fetch("http://localhost:8085/api/board/posts?page=0&size=50", {
         credentials: "include"
       });
 
@@ -452,7 +454,11 @@
         title: p.title ?? "-",
         category: p.category ?? "-",
         dept: p.dept ?? "-",
-        authorName: p.authorName ?? p.author_name ?? "-",
+
+        // ✅ authorname 대응
+        authorname: p.authorname ?? p.author_name ?? p.authorName ?? "-",
+
+        // ✅ createdAt / created_at 대응
         createdAt: p.createdAt ?? p.created_at ?? null
       }));
 
@@ -483,7 +489,7 @@
             <strong>${escapeHtml(item.title)}</strong>
             <div class="submeta">
               <span>${formatDate(item.createdAt)}</span>
-              <span>${escapeHtml(item.authorName)}</span>
+              <span>${escapeHtml(item.authorname)}</span>
             </div>
           </div>
         </td>
@@ -516,7 +522,7 @@
       const matchText =
         (d.title ?? "").toLowerCase().includes(q) ||
         (d.dept ?? "").toLowerCase().includes(q) ||
-        (d.authorName ?? "").toLowerCase().includes(q);
+        (d.authorname ?? "").toLowerCase().includes(q);
 
       const matchType = (f === "all") || d.category === f;
       return matchText && matchType;
@@ -538,7 +544,7 @@
     document.getElementById("dTitle").innerText  = selectedDoc.title ?? "-";
     document.getElementById("dType").innerText   = selectedDoc.category ?? "-";
     document.getElementById("dDept").innerText   = selectedDoc.dept ?? "-";
-    document.getElementById("dWriter").innerText = selectedDoc.authorName ?? "-";
+    document.getElementById("dWriter").innerText = selectedDoc.authorname ?? "-";
     document.getElementById("dDate").innerText   = formatDate(selectedDoc.createdAt);
 
     document.getElementById("downloadBtn").disabled = false;

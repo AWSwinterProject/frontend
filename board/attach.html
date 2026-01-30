@@ -206,18 +206,8 @@
 
 <body>
 <header>
-  <div class="main_div_header">
-    <h1><a class="logo-link" href="/index.html">CoreON</a></h1>
-    <h3>일의 중심이 되는 곳</h3>
-
-    <nav class="top-nav">
-      <a href="/board/list.html" class="nav-item active">게시판</a>
-      <a href="/board/notice.html" class="nav-item">공지</a>
-      <a href="/faq/faq.html" class="nav-item">FAQ</a>
-      <a href="/auth/login.html" class="nav-item action">로그인</a>
-      <a href="/auth/regist.html" class="nav-item action primary">회원가입</a>
-    </nav>
-  </div>
+<div id="app-header"></div>
+<script src="/assets/app-header.js" defer></script>
 </header>
 
 <main>
@@ -360,7 +350,7 @@
     try{
       // 🚩 여기 URL은 너 백엔드에 맞게 교체
       // 예시: /api/board/posts (multipart/form-data)
-      const res = await fetch("/api/board/posts", {
+      const res = await fetch("http://localhost:8085/api/board/posts", {
         method: "POST",
         body: fd,
         credentials: "include"

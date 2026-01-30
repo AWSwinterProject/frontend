@@ -63,6 +63,7 @@
 
 <script>
   const $ = (id) => document.getElementById(id);
+ 
 
   function qs(name){
     return new URLSearchParams(location.search).get(name);
@@ -70,7 +71,6 @@
 
   function fmtDate(v){
     if(!v) return "";
-    // 백엔드가 "2026-01-24T..." 형식이면 Date로 파싱 가능
     const d = new Date(v);
     if (isNaN(d.getTime())) return String(v);
     const yyyy = d.getFullYear();
@@ -81,9 +81,23 @@
     return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
   }
 
-  async function fetchJson(url, options={}){
+  function escapeHtml(str){
+    return String(str ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  async function fetchText(url, options={}){
     const res = await fetch(url, { credentials: "include", ...options });
-    const text = await res.text();
+    const text = await res.text().catch(()=> "");
+    return { res, text };
+  }
+
+  async function fetchJson(url, options={}){
+    const { res, text } = await fetchText(url, options);
     let data = null;
     try { data = text ? JSON.parse(text) : null; } catch(e) {}
     return { res, data, text };
@@ -96,38 +110,56 @@
   }
 
   let post = null;
+  let attachments = [];
 
   async function loadDetail(){
     $("toast").textContent = "";
-    const {res, data, text} = await fetchJson(`/api/board/posts/${boardId}`);
+
+    // 1) 게시글 상세
+    const {res, data, text} = await fetchJson(`http://localhost:8085/api/board/posts/${boardId}`);
+    if(res.status === 401){
+      const next = encodeURIComponent(location.pathname + location.search);
+      location.href = `/auth/login.html?next=${next}`;
+      return;
+    }
     if(!res.ok){
       alert(text || "상세 조회 실패");
       location.href = "/board/list.html";
       return;
     }
 
-    // data는 BoardPost 또는 (가능하면) {post, attachments, canEdit, canDelete} 형태일 수 있음
-    // 우선 둘 다 대응
-    if (data && data.post) {
-      post = data.post;
-      renderAttachments(data.attachments || []);
-      applyPermission(data.canEdit, data.canDelete);
-    } else {
-      post = data;
-      // 첨부는 별도 API가 없으면 그냥 표시 못함
-      renderAttachments([]);
-      // 권한 정보가 응답에 없으면 일단 버튼은 보여주되, 삭제는 백엔드가 막아줌(403)
-      applyPermission(null, null);
-      $("toast").textContent = "※ 권한 정보(canEdit/canDelete)가 응답에 없으면 버튼은 표시되며, 실제 권한은 서버에서 최종 검증됩니다.";
-    }
+    post = data && data.post ? data.post : data;
 
     $("title").textContent = post.title || "";
     $("category").textContent = post.category ? `분류: ${post.category}` : "";
     $("dept").textContent = post.dept ? `부서: ${post.dept}` : "";
-    $("author").textContent = post.authorName ? `작성자: ${post.authorName} (${post.authorEmployeeNo})` : "";
+    $("author").textContent = post.authorName ? `작성자: ${post.authorName} (${post.authorId ?? "-"})` : "";
     $("createdAt").textContent = post.createdAt ? `작성일: ${fmtDate(post.createdAt)}` : "";
     $("viewCount").textContent = (post.viewCount !== undefined && post.viewCount !== null) ? `조회수: ${post.viewCount}` : "";
     $("content").textContent = post.content || "";
+
+    // 2) 첨부 목록 별도 조회
+    await loadAttachments(boardId);
+  }
+
+  async function loadAttachments(boardId){
+    const box = $("attachList");
+    box.textContent = "불러오는 중...";
+
+    const {res, data, text} = await fetchJson(`http://localhost:8085/api/board/posts/${boardId}/attachments`);
+    if(res.status === 401){
+      const next = encodeURIComponent(location.pathname + location.search);
+      location.href = `/auth/login.html?next=${next}`;
+      return;
+    }
+    if(!res.ok){
+      console.error("attachments load fail:", res.status, text);
+      box.textContent = "첨부 로딩 실패";
+      return;
+    }
+
+    attachments = Array.isArray(data) ? data : [];
+    renderAttachments(attachments);
   }
 
   function renderAttachments(list){
@@ -136,21 +168,82 @@
       box.textContent = "없음";
       return;
     }
+
     box.innerHTML = "";
-    list.forEach(att=>{
-      const a = document.createElement("a");
-      a.href = att.storedUrl || "#";
-      a.target = "_blank";
-      a.rel = "noopener";
-      a.textContent = att.originalName || att.storedUrl;
-      box.appendChild(a);
+    list.forEach(att => {
+      const row = document.createElement("div");
+      row.style.display = "flex";
+      row.style.alignItems = "center";
+      row.style.justifyContent = "space-between";
+      row.style.gap = "10px";
+      row.style.padding = "8px 0";
+      row.style.borderTop = "1px solid #e5e7eb";
+
+      const left = document.createElement("div");
+      left.style.minWidth = "0";
+
+      const name = document.createElement("div");
+      name.style.fontWeight = "700";
+      name.style.color = "#1f4bd8";
+      name.style.cursor = "pointer";
+      name.style.overflow = "hidden";
+      name.style.textOverflow = "ellipsis";
+      name.style.whiteSpace = "nowrap";
+      name.textContent = att.originalName || att.storedUrl || "file";
+      name.addEventListener("click", () => downloadAttachment(att.attachmentId));
+
+      const meta = document.createElement("div");
+      meta.style.color = "#6b7280";
+      meta.style.fontSize = "12px";
+      meta.style.marginTop = "3px";
+      meta.textContent = att.contentType ? `${att.contentType}` : "";
+
+      left.appendChild(name);
+      left.appendChild(meta);
+
+      const btn = document.createElement("button");
+      btn.textContent = "다운로드";
+      btn.className = "btn";
+      btn.addEventListener("click", () => downloadAttachment(att.attachmentId));
+
+      row.appendChild(left);
+      row.appendChild(btn);
+
+      box.appendChild(row);
     });
+
+    // 첫 줄 border-top 제거
+    if (box.firstElementChild) box.firstElementChild.style.borderTop = "none";
   }
 
-  function applyPermission(canEdit, canDelete){
-    // canEdit/canDelete가 boolean이면 그에 따라 숨김
-    if (typeof canEdit === "boolean") $("editBtn").style.display = canEdit ? "inline-block" : "none";
-    if (typeof canDelete === "boolean") $("deleteBtn").style.display = canDelete ? "inline-block" : "none";
+  async function downloadAttachment(attachmentId){
+    if(!attachmentId){
+      alert("첨부 ID가 없습니다.");
+      return;
+    }
+
+    const {res, data, text} = await fetchJson(
+      `http://localhost:8085/api/board/attachments/${attachmentId}/download-url?expiresSeconds=300`
+    );
+
+    if(res.status === 401){
+      const next = encodeURIComponent(location.pathname + location.search);
+      location.href = `/auth/login.html?next=${next}`;
+      return;
+    }
+    if(!res.ok){
+      alert(text || `다운로드 URL 발급 실패: ${res.status}`);
+      return;
+    }
+
+    const url = data?.url;
+    if(!url){
+      alert("다운로드 URL이 비어있습니다.");
+      return;
+    }
+
+    // ✅ presigned URL로 이동 -> Content-Disposition에 따라 다운로드됨
+    window.location.href = url;
   }
 
   $("editBtn").addEventListener("click", ()=>{
@@ -160,13 +253,13 @@
   $("deleteBtn").addEventListener("click", async ()=>{
     if(!confirm("정말 삭제하시겠습니까?")) return;
 
-    const {res, text} = await fetchJson(`/api/board/posts/${boardId}`, { method: "DELETE" });
+    const {res, text} = await fetchText(`http://localhost:8085/api/board/posts/${boardId}`, { method: "DELETE" });
+
     if(res.status === 204){
       alert("삭제되었습니다.");
       location.href = "/board/list.html";
       return;
     }
-
     if(res.status === 401){
       alert("로그인이 필요합니다.");
       return;
@@ -180,5 +273,6 @@
 
   loadDetail();
 </script>
+
 </body>
 </html>

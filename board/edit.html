@@ -81,7 +81,7 @@
 
   async function load(){
     $("hint").textContent = "";
-    const {res, data, text} = await fetchJson(`/api/board/posts/${boardId}`, { method: "GET" });
+    const {res, data, text} = await fetchJson(`http://localhost:8085/api/board/posts/${boardId}`, { method: "GET" });
     if(!res.ok){
       alert(text || "게시글 정보를 불러오지 못했습니다.");
       location.href = "/board/list.html";
@@ -118,7 +118,7 @@
     }
 
     // ✅ 백엔드에 PUT API가 있어야 동작
-    const {res, text} = await fetchJson(`/api/board/posts/${boardId}`, {
+    const {res, text} = await fetchJson(`http://localhost:8085/api/board/posts/${boardId}`, {
       method: "PUT",
       body: JSON.stringify(payload)
     });
