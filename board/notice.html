@@ -344,6 +344,7 @@
 <body>
 <header>
   <div id="app-header"></div>
+  <script src="/assets/api-config.js"></script>
   <script src="/assets/app-header.js" defer></script>
 </header>
 
@@ -514,7 +515,7 @@
   // 0) API 기본 설정 (요구사항: Notice_BASE)
   // =========================
   // 개발 환경에서 프론트가 별도 포트면 full URL 사용
-  const Notice_BASE = "http://localhost:8082/api/notice";
+  const Notice_BASE = `${API_HOST.NOTICE}/api/notice`;
   let currentNoticeId = null;
   let formMode = "create";       
   let editingNoticeId = null;   

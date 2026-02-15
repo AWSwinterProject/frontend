@@ -1,5 +1,5 @@
 const HEADER_URL = "/main/header.html";
-const API_BASE = "http://localhost:8080"; // Auth-Service 고정
+const API_BASE = API_HOST.AUTH;
 
 async function loadHeader() {
   const host = document.getElementById("app-header");

@@ -28,10 +28,11 @@
   <h1>로그아웃 중입니다...</h1>
   <p>잠시만 기다려 주세요.</p>
 
+  <script src="/assets/api-config.js"></script>
   <script>
     (async function doLogout() {
       try {
-        const res = await fetch("http://localhost:8080/api/auth/logout", {
+        const res = await fetch(`${API_HOST.AUTH}/api/auth/logout`, {
           method: "POST",
           credentials: "include"
         });

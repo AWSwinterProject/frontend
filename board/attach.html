@@ -207,6 +207,7 @@
 <body>
 <header>
 <div id="app-header"></div>
+<script src="/assets/api-config.js"></script>
 <script src="/assets/app-header.js" defer></script>
 </header>
 
@@ -350,7 +351,7 @@
     try{
       // 🚩 여기 URL은 너 백엔드에 맞게 교체
       // 예시: /api/board/posts (multipart/form-data)
-      const res = await fetch("http://localhost:8085/api/board/posts", {
+      const res = await fetch(`${API_HOST.BOARD}/api/board/posts`, {
         method: "POST",
         body: fd,
         credentials: "include"

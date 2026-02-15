@@ -61,6 +61,7 @@
   </div>
 </div>
 
+<script src="/assets/api-config.js"></script>
 <script>
   const $ = (id) => document.getElementById(id);
  
@@ -116,7 +117,7 @@
     $("toast").textContent = "";
 
     // 1) 게시글 상세
-    const {res, data, text} = await fetchJson(`http://localhost:8085/api/board/posts/${boardId}`);
+    const {res, data, text} = await fetchJson(`${API_HOST.BOARD}/api/board/posts/${boardId}`);
     if(res.status === 401){
       const next = encodeURIComponent(location.pathname + location.search);
       location.href = `/auth/login.html?next=${next}`;
@@ -146,7 +147,7 @@
     const box = $("attachList");
     box.textContent = "불러오는 중...";
 
-    const {res, data, text} = await fetchJson(`http://localhost:8085/api/board/posts/${boardId}/attachments`);
+    const {res, data, text} = await fetchJson(`${API_HOST.BOARD}/api/board/posts/${boardId}/attachments`);
     if(res.status === 401){
       const next = encodeURIComponent(location.pathname + location.search);
       location.href = `/auth/login.html?next=${next}`;
@@ -223,7 +224,7 @@
     }
 
     const {res, data, text} = await fetchJson(
-      `http://localhost:8085/api/board/attachments/${attachmentId}/download-url?expiresSeconds=300`
+      `${API_HOST.BOARD}/api/board/attachments/${attachmentId}/download-url?expiresSeconds=300`
     );
 
     if(res.status === 401){
@@ -253,7 +254,7 @@
   $("deleteBtn").addEventListener("click", async ()=>{
     if(!confirm("정말 삭제하시겠습니까?")) return;
 
-    const {res, text} = await fetchText(`http://localhost:8085/api/board/posts/${boardId}`, { method: "DELETE" });
+    const {res, text} = await fetchText(`${API_HOST.BOARD}/api/board/posts/${boardId}`, { method: "DELETE" });
 
     if(res.status === 204){
       alert("삭제되었습니다.");

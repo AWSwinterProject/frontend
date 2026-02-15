@@ -319,6 +319,7 @@
 <body>
 <header>
 <div id="app-header"></div>
+<script src="/assets/api-config.js"></script>
 <script src="/assets/app-header.js" defer></script>
 </header>
 
@@ -434,7 +435,7 @@
 
   async function loadDocs() {
     try {
-      const res = await fetch("http://localhost:8085/api/board/posts?page=0&size=50", {
+      const res = await fetch(`${API_HOST.BOARD}/api/board/posts?page=0&size=50`, {
         credentials: "include"
       });
 

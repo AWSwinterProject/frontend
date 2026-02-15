@@ -1,5 +1,5 @@
 // ./assets/member-edit.js
-const API_BASE2 = "http://localhost:8081";
+const API_BASE2 = API_HOST.MEMBER;
 
 // ✅ (1) 내 정보 조회 API: 너 프로젝트에 맞게 여기만 바꾸면 됨
 // 후보: /api/member/me  OR  /api/auth/check-session  OR  /api/member/myProfile
@@ -9,7 +9,7 @@ const PROFILE_URL = `${API_BASE2}/api/member/me`;
 const UPDATE_URL = `${API_BASE2}/api/member/editMember`;
 
 // ✅ (3) 로그아웃 API (세션 invalidate)
-const LOGOUT_URL = `http://localhost:8080/api/auth/logout`;
+const LOGOUT_URL = `${API_HOST.AUTH}/api/auth/logout`;
 
 
 document.addEventListener("DOMContentLoaded", () => {

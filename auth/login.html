@@ -261,6 +261,7 @@
     Copyright CoreON
   </footer>
 
+  <script src="/assets/api-config.js"></script>
   <script>
     async function login() {
       const id = document.getElementById("id").value.trim();
@@ -273,7 +274,7 @@
       }
 
       try {
-        const res = await fetch("http://localhost:8080/api/auth/login", {
+        const res = await fetch(`${API_HOST.AUTH}/api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id, pw }),

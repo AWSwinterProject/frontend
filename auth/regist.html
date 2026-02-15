@@ -366,6 +366,7 @@
     Copyright CoreON
   </footer>
   
+  <script src="/assets/api-config.js"></script>
   <script>
   let isDuplicateId = false;
 
@@ -397,7 +398,7 @@
       const id = this.value.trim();
       if (!id) return;
 
-      fetch("http://localhost:8080/api/auth/check-id?id=" + encodeURIComponent(id))
+      fetch(`${API_HOST.AUTH}/api/auth/check-id?id=` + encodeURIComponent(id))
         .then(response => response.json())
         .then(result => {
           const label = document.getElementById("idCheckLabel");
@@ -463,7 +464,7 @@
 
   // 4) 가입 API 호출
   try {
-    const res = await fetch("http://localhost:8080/api/auth/register", {
+    const res = await fetch(`${API_HOST.AUTH}/api/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
